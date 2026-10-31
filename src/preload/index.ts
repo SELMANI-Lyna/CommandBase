@@ -19,6 +19,9 @@ const api = {
   addCommand: (command: any) => ipcRenderer.invoke('add-command', command),
   updateCommand: (id: number, command: any) => ipcRenderer.invoke('update-command', id, command),
   deleteCommand: (id: number) => ipcRenderer.invoke('delete-command', id),
+  duplicateCommand: (id: number) => ipcRenderer.invoke('duplicate-command', id),
+  incrementCommandUse: (id: number) => ipcRenderer.invoke('increment-command-use', id),
+  toggleCommandFavorite: (id: number) => ipcRenderer.invoke('toggle-command-favorite', id),
 
   // Programs (Workflows)
   getPrograms: () => ipcRenderer.invoke('get-programs'),
@@ -30,6 +33,7 @@ const api = {
   deleteProgram: (id: number) => ipcRenderer.invoke('delete-program', id),
   updateProgramSteps: (programId: number, steps: any[]) =>
     ipcRenderer.invoke('update-program-steps', programId, steps),
+  toggleProgramFavorite: (id: number) => ipcRenderer.invoke('toggle-program-favorite', id),
 
   // Blog Posts
   getBlogPosts: () => ipcRenderer.invoke('get-blog-posts'),
@@ -45,7 +49,12 @@ const api = {
   deleteResource: (id: number) => ipcRenderer.invoke('delete-resource', id),
 
   // Search
-  globalSearch: (query: string) => ipcRenderer.invoke('global-search', query)
+  globalSearch: (query: string) => ipcRenderer.invoke('global-search', query),
+
+  // Export / Import / Backup
+  exportData: () => ipcRenderer.invoke('export-data'),
+  importData: () => ipcRenderer.invoke('import-data'),
+  backupDb: () => ipcRenderer.invoke('backup-db')
 }
 
 if (process.contextIsolated) {

@@ -8,6 +8,17 @@ import CommandsView from './views/CommandsView'
 import BlogView from './views/BlogView'
 import ProgramsView from './views/ProgramsView'
 import SettingsView from './views/SettingsView'
+import KeyboardShortcutsModal from './components/KeyboardShortcutsModal'
+
+const VIEW_TITLES: Record<ViewType, string> = {
+  dashboard: 'Operations',
+  categories: 'Categories',
+  commands: 'Commands',
+  tools: 'Tools',
+  programs: 'Workflows',
+  blog: 'Blog',
+  settings: 'Settings'
+}
 
 const HUDClock: React.FC = () => {
   const [time, setTime] = useState(new Date())
@@ -34,8 +45,6 @@ const HUDClock: React.FC = () => {
         border: '1px solid rgba(0, 212, 255, 0.15)'
       }}
     >
-      <span>TIMESTAGING</span>
-      <span style={{ color: 'var(--text-secondary)' }}>/</span>
       <span>
         {time.getFullYear()}-{pad(time.getMonth() + 1)}-{pad(time.getDate())}
       </span>
@@ -48,6 +57,27 @@ const HUDClock: React.FC = () => {
 
 function App(): React.JSX.Element {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard')
+  const [helpOpen, setHelpOpen] = useState(false)
+
+  // Global Ctrl+K → focus search; F1 / ? → help modal
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        // Focus the global search input
+        const el = document.querySelector<HTMLInputElement>('[data-global-search]')
+        if (el) el.focus()
+      }
+      if (e.key === 'F1' || (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey)) {
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+          setHelpOpen(true)
+        }
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const renderView = () => {
     switch (currentView) {
@@ -70,21 +100,17 @@ function App(): React.JSX.Element {
     }
   }
 
-  const handleViewChange = (view: ViewType) => {
-    setCurrentView(view)
-  }
-
   return (
     <div className="app-container">
       <aside className="sidebar-panel">
-        <Sidebar currentView={currentView} onViewChange={handleViewChange} />
+        <Sidebar currentView={currentView} onViewChange={setCurrentView} />
       </aside>
 
       <main className="main-content">
         <header className="header-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <h2 style={{ fontSize: '14px', letterSpacing: '1.5px', color: 'var(--text-primary)' }}>
-              {currentView === 'dashboard' ? 'OPERATIONS' : currentView.toUpperCase()}
+              {VIEW_TITLES[currentView] ?? currentView}
             </h2>
             <span style={{ color: 'var(--border-default)', fontSize: '14px' }}>|</span>
             <GlobalSearch onNavigate={(view) => setCurrentView(view as ViewType)} />
@@ -110,22 +136,20 @@ function App(): React.JSX.Element {
               <span style={{ color: 'var(--accent-green)' }}>ONLINE</span>
             </div>
 
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button
-                className="btn"
-                style={{ height: '30px', padding: '0 12px' }}
-                onClick={() => alert('Operational Protocol Instruction manual loaded.')}
-              >
-                HELP
-              </button>
-            </div>
+            <button
+              className="btn"
+              style={{ height: '30px', padding: '0 12px' }}
+              onClick={() => setHelpOpen(true)}
+            >
+              Help
+            </button>
           </div>
         </header>
 
         <div className="scrollable-area animate-fade-in">{renderView()}</div>
       </main>
 
-      <aside className="right-panel">{/* Right panel content placeholder */}</aside>
+      <KeyboardShortcutsModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   )
 }

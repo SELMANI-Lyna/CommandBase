@@ -121,7 +121,8 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ onNavigate }) => {
             outline: 'none',
             fontFamily: 'JetBrains Mono, monospace'
           }}
-          placeholder="SEARCH_INTEL_DB:_ (type 2+ chars)"
+          data-global-search
+          placeholder="Search (Ctrl+K) — type 2+ chars..."
           value={query}
           onChange={handleChange}
           onFocus={() => {

@@ -1,10 +1,11 @@
 {
   "name": "commandbase",
+  "desktopName": "commandbase",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "description": "CommandBase — a personal cybersecurity knowledge base for commands, tools, workflows, and resources.",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "angel",
+  "homepage": "https://github.com/SELMANI-Lyna/CommandBase",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",

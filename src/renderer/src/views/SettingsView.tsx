@@ -1,232 +1,196 @@
-import React from 'react'
-import { User, Monitor, Shield, Database, Lock, Globe } from 'lucide-react'
+import React, { useState } from 'react'
+import { Database, Download, Upload, HardDrive, Check, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+
+interface Notification {
+  type: 'success' | 'error'
+  message: string
+}
 
 const SettingsView: React.FC = () => {
-  const sections = [
-    {
-      id: 'profile',
-      title: 'OPERATOR_PROFILE',
-      icon: User,
-      items: [
-        { label: 'DISPLAY_NAME', value: 'ANGEL', color: 'var(--text-primary)' },
-        { label: 'ROLE_IDENTIFICATION', value: 'SYSTEM_ARCHITECT', color: 'var(--accent-cyan)' },
-        { label: 'ENCRYPTION_STANDARD', value: 'AES_256_GCM', color: 'var(--accent-green)' }
-      ]
-    },
-    {
-      id: 'visual',
-      title: 'INTERFACE_MONITOR_SET',
-      icon: Monitor,
-      items: [
-        { label: 'THEME_MATRIX', value: 'TERMINAL_HUD_CRT', color: 'var(--accent-cyan)' },
-        {
-          label: 'TYPOGRAPHY_STACK',
-          value: 'JETBRAINS_MONO_ORBITRON',
-          color: 'var(--text-primary)'
-        },
-        { label: 'ACCENT_COLOR_SET', value: 'HAZARD_ACCENT_SYSTEM', color: 'var(--accent-cyan)' }
-      ]
-    },
-    {
-      id: 'security',
-      title: 'KERNEL_DEFENSE_PROTOCOLS',
-      icon: Shield,
-      danger: true,
-      items: [
-        { label: 'OPERATIONAL_STEALTH', value: 'LEVEL_04_MAX', color: 'var(--accent-amber)' },
-        { label: 'CORRELATION_LOGGER', value: 'AGGRESSIVE_STRICT', color: 'var(--accent-red)' }
-      ]
+  const [notification, setNotification] = useState<Notification | null>(null)
+  const [loading, setLoading] = useState<string | null>(null)
+
+  const notify = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message })
+    setTimeout(() => setNotification(null), 4000)
+  }
+
+  const handleExport = async () => {
+    setLoading('export')
+    try {
+      const result = await window.api.exportData()
+      if (result.success) {
+        notify('success', `Exported to ${result.filePath}`)
+      } else {
+        notify('error', 'Export cancelled.')
+      }
+    } catch (err) {
+      notify('error', String(err))
+    } finally {
+      setLoading(null)
     }
-  ]
+  }
+
+  const handleImport = async () => {
+    setLoading('import')
+    try {
+      const result = await window.api.importData()
+      if (result.success) {
+        notify('success', 'Data imported successfully (duplicates skipped).')
+      } else if (result.error) {
+        notify('error', `Import failed: ${result.error}`)
+      } else {
+        notify('error', 'Import cancelled.')
+      }
+    } catch (err) {
+      notify('error', String(err))
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleBackup = async () => {
+    setLoading('backup')
+    try {
+      const result = await window.api.backupDb()
+      if (result.success) {
+        notify('success', `Backup saved to ${result.filePath}`)
+      } else {
+        notify('error', 'Backup cancelled.')
+      }
+    } catch (err) {
+      notify('error', String(err))
+    } finally {
+      setLoading(null)
+    }
+  }
 
   return (
-    <div
-      className="animate-fade-in"
-      style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
-    >
-      {/* Title / Header */}
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Title */}
       <div style={{ borderBottom: '1px solid var(--border-default)', paddingBottom: '16px' }}>
-        <h1 style={{ fontSize: '20px', marginBottom: '4px' }}>SYSTEM_CONFIGURATION</h1>
-        <p
-          style={{
-            color: 'var(--text-secondary)',
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.8px'
-          }}
-        >
-          ADJUST SESSION TERMINAL DEPLOYMENTS, ENCRYPTION CONSTANTS, AND AUDIT INTERNAL ENGINES.
+        <h1 style={{ fontSize: '20px', marginBottom: '4px' }}>Settings</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '11px', letterSpacing: '0.8px' }}>
+          Export, import, and backup your data.
         </p>
       </div>
 
-      {/* Grid configs */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '20px'
-        }}
-      >
-        {sections.map((section) => {
-          const Icon = section.icon
-          return (
-            <div
-              key={section.id}
-              className="card"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '20px',
-                background: section.danger
-                  ? 'linear-gradient(180deg, var(--bg-panel) 0%, rgba(255, 59, 92, 0.01) 100%)'
-                  : 'var(--bg-panel)',
-                border: '1px solid var(--border-default)',
-                borderTop: section.danger
-                  ? '2px solid var(--accent-red)'
-                  : '1px solid var(--border-default)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    border: '1px solid var(--border-default)',
-                    background: 'var(--bg-surface)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: section.danger ? 'var(--accent-red)' : 'var(--accent-cyan)'
-                  }}
-                >
-                  <Icon size={14} />
-                </div>
-                <h3 style={{ fontSize: '12px', letterSpacing: '1px', fontWeight: 800 }}>
-                  {section.title}
-                </h3>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {section.items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '8px 0',
-                      borderBottom:
-                        idx === section.items.length - 1
-                          ? 'none'
-                          : '1px solid rgba(20, 32, 48, 0.5)',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '11px'
-                    }}
-                  >
-                    <span style={{ color: 'var(--text-secondary)', letterSpacing: '0.5px' }}>
-                      {item.label}
-                    </span>
-                    <span style={{ fontWeight: 'bold', color: item.color }}>{item.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              <button className="btn" style={{ width: '100%', height: '30px' }}>
-                MODIFY_PARAMS
-              </button>
-            </div>
-          )
-        })}
-
-        {/* Database Health Card */}
-        <div
-          className="card"
-          style={{
-            background: 'var(--bg-panel)',
-            border: '1px solid var(--border-default)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-            padding: '30px'
-          }}
-        >
-          <Database size={28} color="var(--accent-green)" style={{ marginBottom: '12px' }} />
-          <h3 style={{ marginBottom: '6px', fontSize: '12px', letterSpacing: '1px' }}>
-            LOCAL_ENGINE_HEALTH
-          </h3>
-          <p
+      {/* Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.12 }}
             style={{
-              fontSize: '10px',
-              color: 'var(--text-secondary)',
-              marginBottom: '16px',
-              maxWidth: '280px',
-              lineHeight: '1.4'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '10px 14px',
+              background: notification.type === 'success' ? 'rgba(0,232,135,0.08)' : 'rgba(255,59,92,0.08)',
+              border: `1px solid ${notification.type === 'success' ? 'rgba(0,232,135,0.4)' : 'rgba(255,59,92,0.4)'}`,
+              fontFamily: 'JetBrains Mono',
+              fontSize: '11px',
+              color: notification.type === 'success' ? 'var(--accent-green)' : 'var(--accent-red)'
             }}
           >
-            LOCAL SQLite INSTANCE IS COMPRESSED AND INDEXING EFFICIENTLY. DIRECT DISK PIPES ACTIVE.
-          </p>
-          <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
-            <button
-              className="btn btn-primary"
-              style={{ flex: 1, height: '30px' }}
-              onClick={() => alert('Local backup serialized.')}
-            >
-              BACKUP_DB
-            </button>
-            <button
-              className="btn"
-              style={{ flex: 1, height: '30px' }}
-              onClick={() => alert('Local restore initialized.')}
-            >
-              RESTORE_DB
-            </button>
+            {notification.type === 'success' ? <Check size={13} /> : <X size={13} />}
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Data Management */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+        {/* Export */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', border: '1px solid var(--border-default)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-cyan)' }}>
+              <Download size={16} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '12px', marginBottom: '2px' }}>Export Data</h3>
+              <p style={{ fontSize: '9px', color: 'var(--text-secondary)', letterSpacing: '0.5px' }}>
+                Save all data to a JSON file
+              </p>
+            </div>
           </div>
+          <p style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+            Exports all categories, tools, commands, workflows, resources, and blog posts to a JSON file you can keep as a backup or share.
+          </p>
+          <button
+            className="btn btn-primary"
+            style={{ width: '100%', height: '36px' }}
+            onClick={handleExport}
+            disabled={loading === 'export'}
+          >
+            <Download size={13} /> {loading === 'export' ? 'Exporting...' : 'Export to JSON'}
+          </button>
+        </div>
+
+        {/* Import */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', border: '1px solid var(--border-default)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-green)' }}>
+              <Upload size={16} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '12px', marginBottom: '2px' }}>Import Data</h3>
+              <p style={{ fontSize: '9px', color: 'var(--text-secondary)', letterSpacing: '0.5px' }}>
+                Merge from a JSON export file
+              </p>
+            </div>
+          </div>
+          <p style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+            Imports data from a previous export. Merge mode: skips exact duplicates, never deletes existing entries. Safe to run multiple times.
+          </p>
+          <button
+            className="btn"
+            style={{ width: '100%', height: '36px', borderColor: 'var(--accent-green)', color: 'var(--accent-green)' }}
+            onClick={handleImport}
+            disabled={loading === 'import'}
+          >
+            <Upload size={13} /> {loading === 'import' ? 'Importing...' : 'Import from JSON'}
+          </button>
+        </div>
+
+        {/* Manual Backup */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', border: '1px solid var(--border-default)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-amber)' }}>
+              <HardDrive size={16} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '12px', marginBottom: '2px' }}>Backup Database</h3>
+              <p style={{ fontSize: '9px', color: 'var(--text-secondary)', letterSpacing: '0.5px' }}>
+                Save a copy of the raw SQLite file
+              </p>
+            </div>
+          </div>
+          <p style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+            Copies the raw <code style={{ fontFamily: 'JetBrains Mono', color: 'var(--accent-cyan)' }}>commandbase.db</code> file to a location of your choice.
+            Auto-backup (last 5) runs on every app start.
+          </p>
+          <button
+            className="btn"
+            style={{ width: '100%', height: '36px', borderColor: 'var(--accent-amber)', color: 'var(--accent-amber)' }}
+            onClick={handleBackup}
+            disabled={loading === 'backup'}
+          >
+            <Database size={13} /> {loading === 'backup' ? 'Saving...' : 'Save DB Backup'}
+          </button>
         </div>
       </div>
 
-      {/* Support/Links Footer */}
-      <div
-        style={{
-          marginTop: '30px',
-          padding: '16px 20px',
-          background: 'var(--bg-panel)',
-          border: '1px solid var(--border-default)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}
-      >
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              color: 'var(--text-secondary)',
-              fontSize: '10px'
-            }}
-          >
-            <Lock size={12} color="var(--accent-green)" /> STEALTH_MODE_ENGAGED
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              color: 'var(--text-secondary)',
-              fontSize: '10px'
-            }}
-          >
-            <Globe size={12} color="var(--accent-cyan)" /> NETWORK: LOOPBACK_ONLY
-          </div>
-        </div>
-        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono' }}>
-          COMMANDBASE_PRO // RUNNING LOCAL LAPTOP DEPLOYMENT // v2.0.0-CYBER
-        </div>
+      {/* Info */}
+      <div style={{ marginTop: '10px', padding: '14px 16px', background: 'var(--bg-panel)', border: '1px solid var(--border-default)', fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.7' }}>
+        <strong style={{ color: 'var(--text-primary)', fontFamily: 'Orbitron' }}>Auto-Backup</strong><br />
+        On every app start, CommandBase automatically copies your database to{' '}
+        <code style={{ fontFamily: 'JetBrains Mono', color: 'var(--accent-cyan)' }}>commandbase.db.bak-&lt;timestamp&gt;</code>{' '}
+        in the same folder, keeping only the last 5 backups.
+        The database lives at: <code style={{ fontFamily: 'JetBrains Mono', color: 'var(--accent-cyan)' }}>~/.config/commandbase/</code>
       </div>
     </div>
   )

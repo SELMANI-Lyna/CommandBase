@@ -16,6 +16,9 @@ interface CommandBaseAPI {
   addCommand: (command: any) => Promise<number>
   updateCommand: (id: number, command: any) => Promise<boolean>
   deleteCommand: (id: number) => Promise<boolean>
+  duplicateCommand: (id: number) => Promise<number | null>
+  incrementCommandUse: (id: number) => Promise<boolean>
+  toggleCommandFavorite: (id: number) => Promise<boolean>
   // Programs (Workflows)
   getPrograms: () => Promise<any[]>
   getProgramSteps: (programId: number) => Promise<any[]>
@@ -28,6 +31,7 @@ interface CommandBaseAPI {
   ) => Promise<boolean>
   deleteProgram: (id: number) => Promise<boolean>
   updateProgramSteps: (programId: number, steps: any[]) => Promise<boolean>
+  toggleProgramFavorite: (id: number) => Promise<boolean>
   // Blog Posts
   getBlogPosts: () => Promise<any[]>
   addBlogPost: (post: any) => Promise<number>
@@ -40,6 +44,10 @@ interface CommandBaseAPI {
   deleteResource: (id: number) => Promise<boolean>
   // Search
   globalSearch: (query: string) => Promise<any[]>
+  // Export / Import / Backup (Step 6)
+  exportData: () => Promise<{ success: boolean; filePath?: string }>
+  importData: () => Promise<{ success: boolean; error?: string }>
+  backupDb: () => Promise<{ success: boolean; filePath?: string }>
 }
 
 declare global {
